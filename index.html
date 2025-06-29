@@ -1,97 +1,106 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Internet Speed Test</title>
+  <title>ইন্টারনেট স্পিড টেস্ট</title>
+  <script src="https://cdn.jsdelivr.net/npm/librespeed/speedtest.js"></script>
   <style>
     body {
       margin: 0;
       padding: 0;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #1f1c2c, #928dab);
-      color: #fff;
+      color: #ffffff;
+      text-align: center;
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       height: 100vh;
-      text-align: center;
     }
 
     h1 {
-      font-size: 2.5rem;
+      font-size: 2.8rem;
       margin-bottom: 10px;
     }
 
-    .speed {
-      font-size: 3rem;
-      margin: 20px 0;
-    }
-
-    .label {
-      font-size: 1.2rem;
-      color: #ccc;
-    }
-
-    .btn {
-      background: #ffffff33;
-      border: none;
-      padding: 12px 24px;
+    p {
       font-size: 1rem;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 20px;
+      color: #ccc;
+      margin-bottom: 30px;
     }
 
-    .btn:hover {
-      background: #ffffff55;
+    .result-box {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      font-size: 1.3rem;
+      line-height: 2.2rem;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .result-label {
+      font-weight: bold;
+      color: #00ffd5;
+    }
+
+    #startBtn {
+      margin-top: 30px;
+      padding: 12px 30px;
+      font-size: 1.1rem;
+      background-color: #00c9a7;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    #startBtn:hover {
+      background-color: #00b89d;
+    }
+
+    footer {
+      position: absolute;
+      bottom: 15px;
+      font-size: 0.9rem;
+      color: #aaa;
     }
   </style>
 </head>
 <body>
 
-  <h1>📶 Internet Speed Test</h1>
+  <h1>📡 ইন্টারনেট স্পিড টেস্ট</h1>
+  <p>আপনার বর্তমান ইন্টারনেট সংযোগ কতটা দ্রুত, সেটা জানতে নিচের বাটনে ক্লিক করুন।(Soukhin Online )</p>
 
-  <div class="speed" id="download">Download: ...</div>
-  <div class="speed" id="upload">Upload: ...</div>
+  <div class="result-box">
+    <div><span class="result-label">ডাউনলোড:</span> <span id="download">0</span> Mbps</div>
+    <div><span class="result-label">আপলোড:</span> <span id="upload">0</span> Mbps</div>
+    <div><span class="result-label">পিং:</span> <span id="ping">0</span> ms</div>
+  </div>
 
-  <button class="btn" onclick="runSpeedTest()">Start Test</button>
+  <button id="startBtn" onclick="startSpeedTest()">টেস্ট শুরু করুন</button>
+
+  <footer>ডেভেলপার: 🛠️ <b>Ashraful</b> | Soukhin Online Service</footer>
 
   <script>
-    async function runSpeedTest() {
-      const downloadElem = document.getElementById('download');
-      const uploadElem = document.getElementById('upload');
+    let st = new Speedtest();
 
-      // Download Speed Test
-      let downloadStart = new Date().getTime();
-      let response = await fetch('https://speed.hetzner.de/100MB.bin');
-      let reader = response.body.getReader();
-      let downloaded = 0;
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        downloaded += value.length;
-      }
-      let downloadEnd = new Date().getTime();
-      let duration = (downloadEnd - downloadStart) / 1000;
-      let bitsLoaded = downloaded * 8;
-      let speedMbps = (bitsLoaded / duration / 1024 / 1024).toFixed(2);
-      downloadElem.innerText = `Download: ${speedMbps} Mbps`;
+    function startSpeedTest() {
+      st.onupdate = data => {
+        if (data.dlStatus) document.getElementById("download").textContent = data.dlStatus;
+        if (data.ulStatus) document.getElementById("upload").textContent = data.ulStatus;
+        if (data.pingStatus) document.getElementById("ping").textContent = data.pingStatus;
+      };
 
-      // Upload Speed Test (dummy, limited in browser)
-      uploadElem.innerText = `Upload: Estimating...`;
-      let uploadStart = new Date().getTime();
-      let uploadData = new Uint8Array(10 * 1024 * 1024); // 10MB
-      await fetch("https://httpbin.org/post", {
-        method: "POST",
-        body: uploadData
-      });
-      let uploadEnd = new Date().getTime();
-      let uploadDuration = (uploadEnd - uploadStart) / 1000;
-      let uploadSpeed = ((uploadData.length * 8) / uploadDuration / 1024 / 1024).toFixed(2);
-      uploadElem.innerText = `Upload: ${uploadSpeed} Mbps`;
+      st.onend = () => {
+        console.log("Test Complete");
+      };
+
+      st.start();
     }
   </script>
 </body>
